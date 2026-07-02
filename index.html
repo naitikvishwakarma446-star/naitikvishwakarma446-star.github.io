@@ -4,209 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Naiteek Personal Cloud</title>
-    <!-- Tailwind CSS for Premium UI -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Supabase JS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; font-family: system-ui, -apple-system, sans-serif; }
-        .glass { background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(48, 54, 61, 0.8); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: #161b22; border: 1px solid #30363d; padding: 30px; rounded-radius: 12px; border-radius: 12px; max-w: 400px; w: 100%; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h2 { color: #ffffff; margin-bottom: 8px; font-size: 24px; }
+        p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+        input { w: 100%; width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: white; text-align: center; font-size: 16px; margin-bottom: 15px; outline: none; }
+        input:focus { border-color: #58a6ff; }
+        button { width: 100%; padding: 12px; background: #238636; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #2ea043; }
+        .err { color: #f85149; font-size: 13px; margin-top: 10px; display: none; }
+        .hidden { display: none !important; }
+        .dash-box { background: #161b22; border: 1px solid #30363d; padding: 20px; border-radius: 12px; width: 100%; max-width: 600px; }
+        .file-zone { border: 2px dashed #30363d; padding: 30px; border-radius: 8px; margin-top: 15px; cursor: pointer; text-align: center; color: #8b949e; }
+        .file-zone:hover { border-color: #58a6ff; color: #fff; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4 sm:p-8">
+<body>
 
-    <!-- LOGIN WALL -->
-    <div id="login-wall" class="fixed inset-0 bg-[#0d1117] flex items-center justify-center z-50">
-        <div class="glass p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
-            <i class="fa-solid fa-cloud-lock text-5xl text-blue-500 mb-4"></i>
-            <h2 class="text-2xl font-bold text-white mb-2">Naiteek Cloud</h2>
-            <p class="text-gray-400 text-sm mb-6">Enter password to access your files</p>
-            <input type="password" id="pass-input" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg p-3 text-white text-center focus:outline-none focus:border-blue-500 mb-4" placeholder="••••••••">
-            <button onclick="checkPassword()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-lg transition">Unlock Dashboard</button>
-            <p id="login-err" class="text-red-500 text-xs mt-3 hidden">Galat Password Hai Bhai! ❌</p>
-        </div>
+    <!-- LOGIN PANEL -->
+    <div id="login-box" class="card">
+        <h2>Naiteek Cloud</h2>
+        <p>Enter your master password</p>
+        <input type="password" id="pass" placeholder="••••••••" onkeypress="handleEnter(event)">
+        <button onclick="signMeIn()">Unlock Dashboard</button>
+        <div id="error-msg" class="err">Galat Password Hai Bhai! ❌</div>
     </div>
 
     <!-- MAIN DASHBOARD -->
-    <div class="max-w-4xl w-full hidden" id="dashboard">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-8 pb-4 border-b border-[#30363d]">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-cloud text-3xl text-blue-500"></i>
-                <h1 class="text-2xl font-extrabold text-white tracking-wide">Naiteek Vishwakarma <span class="text-blue-500 text-sm font-normal">Personal Cloud</span></h1>
-            </div>
-            <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-right-from-bracket text-xl"></i></button>
-        </header>
-
-        <!-- Upload Box -->
-        <div class="glass p-6 rounded-2xl mb-8 text-center border-dashed border-2 border-blue-500/30 hover:border-blue-500/60 transition relative">
-            <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" multiple onchange="uploadFiles()">
-            <i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-400 mb-3"></i>
-            <p class="text-white font-medium">Click ya Drag karke files upload karein</p>
-            <p class="text-xs text-gray-400 mt-1">Photos, Videos, PDFs, Documents sab allowed hai</p>
-            <!-- Progress Bar -->
-            <div id="progress-container" class="mt-4 hidden">
-                <div class="w-full bg-[#161b22] rounded-full h-2">
-                    <div id="progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <p id="progress-text" class="text-xs text-gray-400 mt-1">Uploading: 0%</p>
-            </div>
+    <div id="dash-box" class="dash-box hidden">
+        <h2 style="margin-bottom: 4px;">Naiteek Vishwakarma</h2>
+        <p style="margin-bottom: 15px;">Personal Cloud Storage Dashboard</p>
+        
+        <div class="file-zone" onclick="document.getElementById('upload-trigger').click()">
+            <input type="file" id="upload-trigger" class="hidden" onchange="startUpload()" multiple>
+            <strong>Click here to upload files</strong>
+            <div style="font-size: 12px; margin-top: 5px;">Photos, Videos, and Docs supported</div>
         </div>
 
-        <!-- File List Section -->
-        <div class="glass rounded-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-folder-open text-yellow-500"></i> Aapki Files</h3>
-                <button onclick="safeFetchFiles()" class="text-sm text-blue-400 hover:underline"><i class="fa-solid fa-rotate"></i> Refresh</button>
-            </div>
-            <div id="file-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Files automatically append here -->
-            </div>
-            <div id="no-files" class="text-center py-12 text-gray-500 hidden">
-                <i class="fa-regular fa-folder-open text-4xl mb-2"></i>
-                <p>Koi file nahi hai bhai. Upload karo!</p>
+        <div style="margin-top: 25px; text-align: left;">
+            <h3 style="color: white; font-size: 16px; margin-bottom: 10px;">Your Files:</h3>
+            <div id="file-view" style="color: #8b949e; font-size: 14px; padding: 10px; background: #0d1117; border-radius: 6px; text-align: center;">
+                No files uploaded yet.
             </div>
         </div>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://dtcffohlfmhgyputihtj.supabase.co"; 
-        const SUPABASE_KEY = "sb_publishable_Kl2H_9_G0q2m_hZs6UBX9w_gLsdR5Uf"; 
-        const BUCKET_NAME = "my_files";
-        const SECRET_PASSWORD = "Naiteek@2026"; 
-        
-        let supabase = null;
+        const SUPABASE_URL = "https://dtcffohlfmhgyputihtj.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_Kl2H_9_G0q2m_hZs6UBX9w_gLsdR5Uf";
+        const BUCKET = "my_files";
 
-        // Force local login first, connection happens later
-        function checkPassword() {
-            const input = document.getElementById('pass-input').value;
-            if(input === SECRET_PASSWORD) {
-                document.getElementById('login-wall').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                
-                // Initialize Supabase after screen entry
-                try {
-                    supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    safeFetchFiles();
-                } catch(err) {
-                    console.log("Supabase init deferred");
-                }
+        function handleEnter(e) {
+            if(e.key === 'Enter') signMeIn();
+        }
+
+        function signMeIn() {
+            const p = document.getElementById('pass').value;
+            if(p === "Naiteek@2026") {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('dash-box').classList.remove('hidden');
+                syncFiles();
             } else {
-                document.getElementById('login-err').classList.remove('hidden');
+                document.getElementById('error-msg').style.display = 'block';
             }
         }
 
-        function logout() {
-            document.getElementById('pass-input').value = '';
-            document.getElementById('login-wall').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-        }
-
-        async function safeFetchFiles() {
-            const fileList = document.getElementById('file-list');
-            const noFiles = document.getElementById('no-files');
-            fileList.innerHTML = '<p class="text-center text-gray-400 col-span-2">Loading files...</p>';
-
-            if(!supabase) {
-                fileList.innerHTML = '';
-                noFiles.classList.remove('hidden');
-                return;
-            }
-
+        async function syncFiles() {
+            const view = document.getElementById('file-view');
+            view.innerText = "Loading files from cloud...";
+            
             try {
-                const { data, error } = await supabase.storage.from(BUCKET_NAME).list('', {
-                    sortBy: { column: 'created_at', order: 'desc' }
+                const res = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prefix: "", limit: 100, sortBy: { column: "name", order: "asc" } })
                 });
-
-                if (error || !data || data.length === 0) {
-                    fileList.innerHTML = '';
-                    noFiles.classList.remove('hidden');
+                
+                const data = await res.json();
+                if(!data || data.length === 0 || data.error) {
+                    view.innerText = "Cloud storage empty. Ready for uploads!";
                     return;
                 }
-                noFiles.classList.add('hidden');
-                fileList.innerHTML = '';
 
-                data.forEach(file => {
-                    const fileUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${file.name}`;
-                    let icon = 'fa-file';
-                    if(file.metadata && file.metadata.mimetype) {
-                        if(file.metadata.mimetype.startsWith('image/')) icon = 'fa-file-image text-green-400';
-                        else if(file.metadata.mimetype.startsWith('video/')) icon = 'fa-file-video text-purple-400';
-                        else if(file.metadata.mimetype.includes('pdf')) icon = 'fa-file-pdf text-red-400';
-                    }
-
-                    const card = document.createElement('div');
-                    card.className = "flex items-center justify-between p-4 bg-[#161b22] border border-[#30363d] rounded-xl hover:border-gray-500 transition";
-                    card.innerHTML = `
-                        <div class="flex items-center gap-3 min-w-0 flex-1">
-                            <i class="fa-solid ${icon} text-2xl"></i>
-                            <div class="truncate">
-                                <p class="text-sm font-semibold text-white truncate">${file.name}</p>
-                                <p class="text-xs text-gray-400">${(file.metadata ? (file.metadata.size/1024/1024).toFixed(2) : 0)} MB</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 ml-4">
-                            <a href="${fileUrl}" target="_blank" class="p-2 text-gray-400 hover:text-green-400 transition" title="View"><i class="fa-solid fa-eye"></i></a>
-                            <a href="${fileUrl}" download="${file.name}" class="p-2 text-gray-400 hover:text-blue-400 transition" title="Download"><i class="fa-solid fa-download"></i></a>
-                            <button onclick="renameFile('${file.name}')" class="p-2 text-gray-400 hover:text-yellow-400 transition" title="Rename"><i class="fa-solid fa-pencil"></i></button>
-                            <button onclick="deleteFile('${file.name}')" class="p-2 text-gray-400 hover:text-red-500 transition" title="Delete"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    `;
-                    fileList.appendChild(card);
+                view.innerHTML = "";
+                data.forEach(f => {
+                    const link = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${f.name}`;
+                    const item = document.createElement('div');
+                    item.style.cssText = "display: flex; justify-content: space-between; padding: 8px 0; border-b: 1px solid #30363d; margin-bottom: 5px;";
+                    item.innerHTML = `<span style="color:white; max-width:70%; overflow:hidden; text-overflow:ellipsis;">📄 ${f.name}</span> <a href="${link}" target="_blank" style="color:#58a6ff; text-decoration:none;">View ↗</a>`;
+                    view.appendChild(item);
                 });
-            } catch(e) {
-                fileList.innerHTML = `<p class="text-center text-red-400 col-span-2">Cloud connected but bucket empty or restricted.</p>`;
+            } catch(err) {
+                view.innerText = "Connected! Storage bucket setup pending.";
             }
         }
 
-        async function uploadFiles() {
-            if(!supabase) return alert("Database not ready yet bhai!");
-            const input = document.getElementById('file-input');
-            if (input.files.length === 0) return;
+        async function startUpload() {
+            const selector = document.getElementById('upload-trigger');
+            if(!selector.files.length) return;
+            
+            const view = document.getElementById('file-view');
+            view.innerText = "Uploading to cloud, please wait...";
 
-            const pContainer = document.getElementById('progress-container');
-            const pBar = document.getElementById('progress-bar');
-            const pText = document.getElementById('progress-text');
-
-            pContainer.classList.remove('hidden');
-
-            for(let i=0; i<input.files.length; i++) {
-                const file = input.files[i];
-                pText.innerText = `Uploading: ${file.name}`;
-                pBar.style.width = `50%`;
-
-                const { error } = await supabase.storage.from(BUCKET_NAME).upload(file.name, file, { cacheControl: '3600', upsert: true });
-                
-                if (error) alert("Upload fail ho gaya bhai: " + error.message);
+            for(let file of selector.files) {
+                try {
+                    await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${file.name}`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        },
+                        body: file
+                    });
+                } catch(e) {
+                    console.error(e);
+                }
             }
-
-            pBar.style.width = `100%`;
-            setTimeout(() => {
-                pContainer.classList.add('hidden');
-                pBar.style.width = `0%`;
-                safeFetchFiles();
-            }, 1000);
-        }
-
-        async function deleteFile(name) {
-            if(!supabase) return;
-            if(confirm("Kya sach me ye file delete karni hai bhai?")) {
-                const { error } = await supabase.storage.from(BUCKET_NAME).remove([name]);
-                if(error) alert("Delete nahi ho payi: " + error.message);
-                else safeFetchFiles();
-            }
-        }
-
-        async function renameFile(oldName) {
-            if(!supabase) return;
-            const newName = prompt("Naya naam likho bhai:", oldName);
-            if(!newName || newName === oldName) return;
-
-            const { error } = await supabase.storage.from(BUCKET_NAME).move(oldName, newName);
-            if(error) alert("Rename fail: " + error.message);
-            else safeFetchFiles();
+            syncFiles();
         }
     </script>
 </body>
